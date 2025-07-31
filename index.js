@@ -110,25 +110,23 @@ app.post('/api/persons', (request, response) => {
 })
 
 app.put('/api/persons/:id', (request, response) => {
-  const id = request.params.id.toString();
-  const number = request.body;
+  const id = request.params.id.toString(); 
+  const { number } = request.body;
 
   if (!number || number.trim() === '') {
     return response.status(400).json({ error: 'Number is required' });
   }
 
-  const person = persons.find(p => p.id === id)
-  
+  const person = persons.find(p => p.id === id);
 
   if (!person) {
     return response.status(404).json({ error: 'Person not found' });
   }
 
   person.number = number.trim();
-
   response.json(person);
+});
 
-}) 
 
 
 const unknownEndpoint = (request, response) => {
