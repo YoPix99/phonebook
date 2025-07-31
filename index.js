@@ -110,7 +110,7 @@ app.post('/api/persons', (request, response) => {
 })
 
 app.put('/api/persons/:id', (request, response) => {
-  const id = request.params.id
+  const id = request.params.id.toString();
   const number = request.body;
 
   if (!number || number.trim() === '') {
