@@ -14,15 +14,18 @@ const requestLogger = (request, response, next) => {
 }
 
 
-const errorHandler = (error,request,response,next) => {
+const errorHandler = (error, request, response, next) => {
   console.error(error.message)
 
-  if(error.name === 'CastError') {
-    return response.status(400).send({error: 'malformatted id'})
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message }) // <--- aqui está o novo bloco
   }
 
   next(error)
 }
+
 
 app.use(express.static('dist'))
 app.use(express.json())
@@ -38,7 +41,7 @@ app.get('/api/persons', (request, response) => {
   })
 })
 
-app.get("/info", (request, response) => {
+app.get("/info", (request, response,next) => {
   Person.countDocuments({}).then(count => {
     const info = `
       <p>Phonebook has info for ${count} people</p>
@@ -49,7 +52,7 @@ app.get("/info", (request, response) => {
 })
 
 
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response, next) => {
   Person.findById(request.params.id)
     .then(person => {
       if (person) {
@@ -62,7 +65,7 @@ app.get('/api/persons/:id', (request, response) => {
 })
 
 
-app.delete('/api/persons/:id', (request, response) => {
+app.delete('/api/persons/:id', (request, response, next) => {
   Person.findByIdAndDelete(request.params.id)
     .then(result => {
       response.status(204).end()
@@ -78,7 +81,7 @@ const generateId = () => {
   return randomId
 }
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
   const body = request.body
 
   if (!body.name || !body.number) {
@@ -87,24 +90,20 @@ app.post('/api/persons', (request, response) => {
     })
   }
 
-
-  const person = new Person(
-    {
+  const person = new Person({
     name: body.name,
     number: body.number
-    }
-  )
+  })
 
-  person.save().then(savedPerson=> 
-    {
-    response.json(savedPerson)
-    }
-  )
-  
-
+  person.save()
+    .then(savedPerson => {
+      response.json(savedPerson)
+    })
+    .catch(error => next(error)) 
 })
 
-app.put('/api/persons/:id', (request, response) => {
+
+app.put('/api/persons/:id', (request, response, next) => {
   const { name, number} = request.body
 
   Person.findById(request.params.id)
