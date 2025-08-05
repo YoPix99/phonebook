@@ -25,12 +25,13 @@ const personSchema = new mongoose.Schema({
     required: true,
     validate: {
       validator: function(v) {
-        return /^\d+$/.test(v) 
+        // Matches 2-3 digits, a hyphen, then at least 5 digits
+        return /^\d{2,3}-\d{5,}$/.test(v);
       },
-      message: props => `${props.value} is not a valid number! Only digits allowed.`
+      message: props => `${props.value} is not a valid phone number! Use format XX-YYYYYYY or XXX-YYYYYYY.`
     }
   }
-})
+});
 
 
 personSchema.set('toJSON', {
